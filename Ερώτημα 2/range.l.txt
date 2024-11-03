@@ -1,0 +1,86 @@
+%{ 
+#include "range.tab.h" 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+void showError();
+%}
+	
+%option noyywrap
+%option yylineno
+
+pnum    [2-9]([0-9])*|1[0-9]+
+string  "\""([a-zA-Z0-9.])+"\""
+preal   0"."(0)*{pnum}|0"."(0)*1|[1-9]([0-9])*"."[0-9]+
+one     1
+zero    0
+rzero   0"."0(0)*
+
+%%
+
+
+{one}            {ECHO; yylval= atoi(yytext); return ONE;}
+{zero}           {ECHO; yylval= atoi(yytext); return ZERO;} 
+{rzero}           {ECHO; yylval= atof(yytext); return RZERO;} 
+{pnum}           {ECHO; yylval= atoi(yytext); return PNUM;} 
+{preal}         {ECHO; yylval= atof(yytext); return PREAL;}  
+[ \n\t\v\r]	{ECHO; ;}                  //gia na sbinei ta kena
+","             {ECHO; return ',';}
+"."             {ECHO; return '.';}
+":"             {ECHO; return ':';}
+"\""            {ECHO; return  '"';}
+"["             {ECHO; return '[';}      
+"]"             {ECHO; return ']';} 
+"{"             {ECHO; return '{';}
+"}"             {ECHO; return '}';}     
+"\"last\""      {ECHO; return LAST;}
+"\"gameId\"" 	{ECHO; return GAMEID;}
+"\"drawId\""	{ECHO; return DRAWID;}
+"\"drawTime\""	{ECHO; return DRAWTIME;}
+"\"status\""	{ECHO; return STATUS;}
+"\"drawBreak\""	  {ECHO; return DRAWBREAK;}
+"\"visualDraw\""  {ECHO; return VISUALDRAW;}
+"\"pricePoints\""	{ECHO; return PRICEPOINTS;}
+"\"amount\"" 	{ECHO; return AMOUNT;}
+"\"winningNumbers\"" {ECHO; return WINNINGNUMBERS;}
+"\"list\""		{ECHO; return LIST;}
+"\"bonus\""	        {ECHO; return BONUS;}
+"\"prizeCategories\"" {ECHO; return PRIZECATEGORIES;}
+"\"id\""		{ECHO; return ID;}
+"\"divident\""	{ECHO; return DIVIDENT;}
+"\"winners\""	{ECHO; return WINNERS;}
+"\"distributed\""	{ECHO; return DISTRIBUTED;}
+"\"jackpot\""	{ECHO; return JACKPOT;}
+"\"fixed\""	        {ECHO; return FIXED;}
+"\"categoryType\""	{ECHO; return CATEGORYTYPE;}
+"\"gameType\""	{ECHO; return GAMETYPE;}
+"\"minimumDistributed\"" {ECHO; return MINIMUMDISTRIBUTED;}
+"\"wagerStatistics\"" {ECHO; return WAGERSTATISTICS;}
+"\"columns\""	{ECHO; return COLUMNS;}
+"\"wagers\""	{ECHO; return WAGERS;}
+"\"addOn\""	{ECHO; return ADDON;}
+"\"active\""    {ECHO; return ACTIVE;} 
+"\"content\""   {ECHO; return CONTENT;}
+"\"totalPages\"" {ECHO; return TOTALPAGES;}
+"\"totalElements\"" {ECHO; return TOTALELEMENTS;}
+"\"numberOfElements\"" {ECHO; return NUMBEROFELEMENTS;}
+"\"sort\""       {ECHO; return SORT;}
+"\"first\""      {ECHO; return FIRST;}
+"\"size\""       {ECHO; return SIZE;}
+"\"number\""     {ECHO; return NUMBER;}
+"true"            {ECHO; return TRUE;}
+"false"           {ECHO; return FALSE;}
+"\"direction\""       {ECHO; return DIRECTION;}
+"\"property\""       {ECHO; return PROPERTY;}
+"\"ignoreCase\""       {ECHO; return IGNORECASE;}
+"\"nullHandling\""       {ECHO; return NULLHANDLING;}
+"\"descending\""       {ECHO; return DESCENDING;}
+"\"ascending\""       {ECHO; return ASCENDING;}
+ {string}        {ECHO; yylval= strdup(yytext); return STRING;}     
+ .               {ECHO; showError(); return yytext[0];}
+
+%%
+
+void showError(){
+	printf("\nFound a character that's not supposed to be in the file!");
+}

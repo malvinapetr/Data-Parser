@@ -1,0 +1,82 @@
+%{
+#include <stdio.h>
+#include <math.h>
+void yyerror(char *); 
+extern FILE *yyin;								
+extern FILE *yyout;	
+extern yylineno;	
+%}
+
+%token STRING LAST ACTIVE GAMEID DRAWID DRAWTIME STATUS DRAWBREAK VISUALDRAW PRICEPOINTS 
+%token AMOUNT WINNINGNUMBERS LIST BONUS PRIZECATEGORIES ID DIVIDENT WINNERS DISTRIBUTED JACKPOT FIXED
+%token CATEGORYTYPE GAMETYPE MINIMUMDISTRIBUTED WAGERSTATISTICS COLUMNS WAGERS ADDON PREAL PNUM ZERO RZERO ONE 
+
+
+%%
+
+program: '{' LAST ':' '{' last '}' ',' ACTIVE ':' '{' active '}' '}';
+
+last: gameid drawid drawtime status drawbreak visualdraw pricepoints winningnumbers prizecategories wagerstatistics;
+
+active: gameid drawid drawtime status drawbreak visualdraw pricepoints prizecategories wagerstatistics;
+
+pint: PNUM| ONE;                         //kanonas gia thetiko akeraio
+real: PREAL| RZERO;                      // kanonas gia pragmatikous, perilambanei kai to 0.0
+int: PNUM|ZERO| ONE;                     // kanonas gia akeraio, perilambanei kai to 0 
+cstring: STRING|LAST|ACTIVE|GAMEID|DRAWID|DRAWTIME|STATUS|DRAWBREAK|VISUALDRAW|PRICEPOINTS   // gia na mporei na dexetai kai oles tis lekseis pou einai dilwmenes ws tokens
+       |AMOUNT|WINNINGNUMBERS|LIST|BONUS|PRIZECATEGORIES|ID|DIVIDENT|WINNERS|DISTRIBUTED|JACKPOT|FIXED
+       |CATEGORYTYPE|GAMETYPE|MINIMUMDISTRIBUTED|WAGERSTATISTICS|COLUMNS|WAGERS|ADDON
+       
+gameid: GAMEID ':' pint ',';
+drawid: DRAWID ':' pint ',';
+drawtime: DRAWTIME ':' pint ',';
+status: STATUS ':' cstring  ',';
+drawbreak: DRAWBREAK ':' pint ',';
+visualdraw: VISUALDRAW ':' pint ',';
+pricepoints: PRICEPOINTS ':' '{' amount '}' ',';
+amount: AMOUNT ':' PREAL ;
+winningnumbers: WINNINGNUMBERS ':' '{' list bonus '}' ',';
+list: LIST ':' '[' pint ',' pint ',' pint ',' pint ',' pint ']' ',';
+bonus: BONUS ':' '[' pint ']';
+
+prizecategories: PRIZECATEGORIES ':' '[' arrayelements ',' arrayelement ',' arrayelement ',' arrayelement ',' arrayelement ',' arrayelement ',' arrayelement ',' arrayelement ']' ',';
+arrayelement:  '{' oid divident winners distributed jackpot fixed categorytype gametype '}';
+arrayelements: '{' id divident winners distributed jackpot fixed categorytype gametype minimumdistributed '}';
+
+id: ID ':' ONE ',';                                        //mono gia id=1
+oid: ID ':' PNUM ',';                                      //gia ta upoloipa id
+divident: DIVIDENT ':' real ','; 
+winners: WINNERS ':' int ',';
+distributed: DISTRIBUTED ':' real ',';
+jackpot: JACKPOT ':' real ',';
+fixed: FIXED ':' real ',';
+categorytype: CATEGORYTYPE ':' ZERO ',' 
+            | CATEGORYTYPE ':' ONE ',' ;
+gametype: GAMETYPE ':' cstring;
+minimumdistributed: ',' MINIMUMDISTRIBUTED ':' real;               //mono gia id=1
+                                
+                
+wagerstatistics: WAGERSTATISTICS ':' '{' columns wagers addon '}';
+columns: COLUMNS ':' int ',';
+wagers: WAGERS ':' int ',';
+addon: ADDON ':' '[' ']';
+
+%%
+
+void yyerror(char *s) {
+     fprintf(stderr,"\nError detected: %s.\nIt is in line %d.\t",s,yylineno);
+}
+
+int main ( int argc, char **argv  ) 
+  {
+  ++argv; --argc;
+  if ( argc > 0 )
+        yyin = fopen( argv[0], "r" );
+  else
+        yyin = stdin;
+  printf("\n%s\n",yyout);	
+  if(yyparse ()==0)
+    printf("Parsing successful, no mistakes!\n");    
+  return 0;
+  }   
+			

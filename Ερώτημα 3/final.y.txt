@@ -1,0 +1,123 @@
+%{
+#include <stdio.h>
+#include <math.h>
+void yyerror(char *); 
+extern FILE *yyin;								
+extern FILE *yyout;	
+extern yylineno;
+
+int check;	
+%}
+
+%token STRING LAST ACTIVE GAMEID DRAWID DRAWTIME STATUS DRAWBREAK VISUALDRAW PRICEPOINTS 
+%token AMOUNT WINNINGNUMBERS LIST BONUS PRIZECATEGORIES ID DIVIDENT WINNERS DISTRIBUTED JACKPOT FIXED
+%token CATEGORYTYPE GAMETYPE MINIMUMDISTRIBUTED WAGERSTATISTICS COLUMNS WAGERS ADDON PREAL PNUM ZERO RZERO ONE 
+%token CONTENT TOTALPAGES TOTALELEMENTS NUMBEROFELEMENTS FIRST SIZE NUMBER SORT TRUE FALSE DIRECTION PROPERTY
+%token IGNORECASE NULLHANDLING DESCENDING ASCENDING
+
+
+%%
+
+program: '{' LAST ':' '{' last '}' ',' ACTIVE ':' '{' active '}' '}'
+       |'{' CONTENT ':' content '}';
+
+last: gameid drawid drawtime status drawbreak visualdraw pricepoints winningnumbers prizecategories wagerstatistics;
+
+active: gameid drawid drawtime status drawbreak visualdraw pricepoints prizecategories wagerstatistics;
+
+content: '[' rlast ']' ',' totalpages totalelements olast numberofelements sort first size number; 
+
+rlast: mlast 
+     |  /*empty*/ ;
+  
+mlast: '{' last '}'
+     | '{' last '}' ',' mlast;
+  
+     
+pint: PNUM| ONE;                         //kanonas gia thetiko akeraio
+real: PREAL| RZERO;                      // kanonas gia pragmatikous, perilambanei kai to 0.0
+int: PNUM|ZERO| ONE;                     // kanonas gia akeraio, perilambanei kai to 0 
+cstring: STRING|LAST|ACTIVE|GAMEID|DRAWID|DRAWTIME|STATUS|DRAWBREAK|VISUALDRAW|PRICEPOINTS     // gia na mporei na dexetai ws string kai oles tis lekseis pou einai dilwmenes ws tokens
+       |AMOUNT|WINNINGNUMBERS|LIST|BONUS|PRIZECATEGORIES|ID|DIVIDENT|WINNERS|DISTRIBUTED|JACKPOT|FIXED
+       |CATEGORYTYPE|GAMETYPE|MINIMUMDISTRIBUTED|WAGERSTATISTICS|COLUMNS|WAGERS|ADDON|CONTENT
+       |TOTALPAGES|TOTALELEMENTS|NUMBEROFELEMENTS|FIRST|SIZE|NUMBER|SORT|TRUE|FALSE|DIRECTION|PROPERTY
+       |IGNORECASE|NULLHANDLING|DESCENDING|ASCENDING;
+boolean: TRUE|FALSE;       
+       
+gameid: GAMEID ':' pint ',' {check= $3;if(check!=1100 && check!=1110 && check!=2100 && check!=2101 && check!=5103 && check!=5104 && check!=5106) {fprintf(stderr,"\nError detected: id doesn't match a game id! The error is in line %d.\t",yylineno); return 1;}};
+
+drawid: DRAWID ':' pint ',';
+drawtime: DRAWTIME ':' pint ',';
+status: STATUS ':' cstring  ',';
+drawbreak: DRAWBREAK ':' pint ',';
+visualdraw: VISUALDRAW ':' pint ',';
+pricepoints: PRICEPOINTS ':' '{' amount '}' ',';
+amount: AMOUNT ':' PREAL ;
+winningnumbers: WINNINGNUMBERS ':' '{' list sec third fourth fifth fin bonus '}' ',';
+list: LIST ':' '[' pint {check= $4;if(check>45) {fprintf(stderr,"\nError detected: first number is out of range! The error is in line %d.\t",yylineno); return 1;}}
+sec: ',' pint  {check= $2;if(check>45) {fprintf(stderr,"\nError detected: second number is out of range! The error is in line %d.\t",yylineno); return 1;}}
+third: ',' pint  {check= $2;if(check>45) {fprintf(stderr,"\nError detected: third number is out of range! The error is in line %d.\t",yylineno); return 1;}}
+fourth: ',' pint {check= $2;if(check>45) {fprintf(stderr,"\nError detected: fourth number is out of range! The error is in line %d.\t",yylineno); return 1;}}
+fifth: ',' pint {check= $2;if(check>45) {fprintf(stderr,"\nError detected: fifth number is out of range! The error is in line %d.\t",yylineno); return 1;}}
+fin: ']' ',';
+                                                                                   
+bonus: BONUS ':' '[' pint ']';
+
+prizecategories: PRIZECATEGORIES ':' '[' arrayelements ',' arrayelement ',' arrayelement ',' arrayelement ',' arrayelement ',' arrayelement ',' arrayelement ',' arrayelement ']' ',';
+arrayelement:  '{' oid divident winners distributed jackpot fixed categorytype gametype '}';
+arrayelements: '{' id divident winners distributed jackpot fixed categorytype gametype minimumdistributed '}';
+
+id: ID ':' ONE ',';                                        //mono gia id=1
+oid: ID ':' PNUM ',';                                      //gia ta upoloipa id
+divident: DIVIDENT ':' real ','; 
+winners: WINNERS ':' int ',';
+distributed: DISTRIBUTED ':' real ',';
+jackpot: JACKPOT ':' real ',';
+fixed: FIXED ':' real ',';
+categorytype: CATEGORYTYPE ':' ZERO ',' 
+            | CATEGORYTYPE ':' ONE ',' ;
+gametype: GAMETYPE ':' cstring;
+minimumdistributed: ',' MINIMUMDISTRIBUTED ':' real;               //mono gia id=1
+                                
+                
+wagerstatistics: WAGERSTATISTICS ':' '{' columns wagers addon '}';
+columns: COLUMNS ':' int ',';
+wagers: WAGERS ':' int ',';
+addon: ADDON ':' '[' ']';
+
+totalpages: TOTALPAGES ':' int ',';
+totalelements: TOTALELEMENTS ':' int ',';
+olast: LAST ':' boolean ',';
+numberofelements: NUMBEROFELEMENTS ':' int ',';
+
+sort: SORT ':' '[' '{' direction property ignorecase nullhandling descending ascending '}' ']' ',';
+direction: DIRECTION ':' cstring ',';
+property: PROPERTY ':' cstring ',';
+ignorecase: IGNORECASE ':' boolean ',';
+nullhandling: NULLHANDLING ':' cstring ',';
+descending: DESCENDING ':' boolean ',';
+ascending: ASCENDING ':' boolean ;
+
+first: FIRST ':' boolean ',' ;
+size: SIZE ':' pint ',';
+number: NUMBER ':' int ;
+
+%%
+
+void yyerror(char *s) {
+     fprintf(stderr,"\nError detected: %s.\nIt is in line %d.\t",s,yylineno);
+}
+
+int main ( int argc, char **argv  ) 
+  {
+  ++argv; --argc;
+  if ( argc > 0 )
+        yyin = fopen( argv[0], "r" );
+  else
+        yyin = stdin;
+  printf("\n%s\n",yyout);	
+  if(yyparse ()==0)
+    printf("Parsing successful, no mistakes!\n");    
+  return 0;
+  }   
+			

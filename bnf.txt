@@ -1,0 +1,57 @@
+<program> ::= '{"last": {' <last> '}, "active": {' <active> '}}'
+
+<last> ::= <gameid> <drawid> <drawtime> <status> <drawbreak> <visualdraw> <pricepoints> <winningnumbers> <prizecategories> <wagerstatistics>
+
+<active> ::= <gameid> <drawid> <drawtime> <status> <drawbreak> <visualdraw> <pricepoints> <prizecategories> <wagerstatistics>
+
+
+<gameid> ::= '"gameId": ' <pint> ','
+<drawid> ::= '"drawId": ' <pint> ','
+<drawtime> ::= '"drawTime": ' <pint> ','
+<status> ::= '"status": ' <string> ','
+<drawbreak> ::= '"drawBreak": ' <pint> ','
+<visualdraw> ::= '"visualDraw": ' <pint> ','
+<pricepoints> ::= '"pricePoints": {' <amount> '},'
+<amount> ::= '"amount": ' <preal> ','
+<winningnumbers> ::= '"winningNumbers": {' <list> <bonus> '},'
+<list> ::= '"list": [' <pint> ',' <pint> ',' <pint> ',' <pint> ',' <pint> '],'
+<bonus> ::= '"bonus": [' <pint> ']'
+
+<prizecategories> ::= '"prizeCategories": [' <arrayelements> ',' <arrayelement> ',' <arrayelement> ',' <arrayelement> ',' <arrayelement> ',' <arrayelement> ',' <arrayelement> ',' <arrayelement> '],'
+<arrayelements> ::= '{' <id> <divident> <winners> <distributed> <jackpot> <fixed> <categorytype> <gametype> <minimumdistributed> '}'
+<arrayelement> ::= '{' <oid> <divident> <winners> <distributed> <jackpot> <fixed> <categorytype> <gametype> '}'
+
+<id> ::= '"id": 1,'							;mono gia id=1
+<oid> ::= '"id": ' <pnum> ','						;gia ta upoloipa id
+<divident> ::= '"divident": ' <real> ','
+<winners> ::= '"winners": ' <int> ','
+<distributed> ::= '"distributed": ' <real> ','
+<jackpot> ::= '"jackpot": ' <real> ','
+<fixed> ::= '"fixed": ' <real> ','
+<categorytype> ::= '"categoryType": 0,' | '"categoryType": 1,'
+<gametype> ::= '"gameType": ' <string>
+<minimumdistributed> ::= ', "minimumDistributed": ' <real>		;mono gia id=1
+                                
+<wagerstatistics> ::= '"wagerStatistics": {' <columns> <wagers> <addon> '}'
+<columns> ::= '"columns": ' <int> ','
+<wager> ::= '"wager": ' <int> ','
+<addon>:  '"addOn":[ ]'
+
+
+<real> :: <preal> | "0.0"<zerorec>
+<int> :: <pnum> | "0" | "1"
+<pint> :: <pnum> | "1"
+<preal> ::= "0." <zerorec> <pnum> | "0." <zerorec> "1" <zerorec> | <pdigit> <digitrecstar> "." <digitrec>
+	   		;0"."(0)*{pnum}|0"."(0)*1(0)*|[1-9]([0-9])*"."[0-9]+
+<zerorec> ::= "" | "0" | "0" <zerorec>					;(0)*
+<pnum> ::= <qdigit> <digitrecstar> | "1" <digitrec>			;[2-9]([0-9])*|1([0-9])+  for numbers>=2
+<digitrecstar> ::= "" | <digit> | <digit> <digitrec>			;[0-9]*
+<digitrec> ::= <digit> | <digit> <digitrec>				;[0-9]+
+<digit> ::= "0" | <pdigit>						;0-9
+<pdigit> ::= "1" | <qdigit>						;1-9
+<qdigit> ::= "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"		;2-9
+
+<string> ::= '"' <letterdigitrec> '"'
+<letterdigitrec> ::= <letterdigit> | <letterdigit> <letterdigitrec>	;[a-zA-Z0-9]+
+<letterdigit> :: <letter> | <digit> | '.'					;[a-zA-Z]|[0-9]
+<letter> ::= "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
